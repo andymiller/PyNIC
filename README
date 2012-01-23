@@ -1,0 +1,6 @@
+Python implementaiton of "A Nonparametric Information Theoretic Clustering Algorithm" (ICML '10) 
+by Faivishevsky and Goldberger
+
+Depends on numpy, scipy, and matplotlib for optional plotting. 
+
+more at learningpapers.tumblr.com
