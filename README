@@ -3,4 +3,9 @@ by Faivishevsky and Goldberger
 
 Depends on numpy, scipy, and matplotlib for optional plotting. 
 
+Run "python nic.py" for a clustering example, and run
+"eval.py" for a comparison with k-means
+
 more at learningpapers.tumblr.com
+
+
