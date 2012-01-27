@@ -1,20 +1,10 @@
 import time
 import numpy as np
 import pylab as pl
+import sample, nic
 from sklearn.cluster import MiniBatchKMeans, KMeans
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.datasets.samples_generator import make_blobs
-
-
-def noisy_ring(N, center, radius, var=1.0):
-  """Creates N 2d samples from a (gaussian) noisy ring"""
-  thetas = np.random.uniform(0, 2*np.pi, N)
-  xnoise = np.random.normal(0, var, N)
-  ynoise = np.random.normal(0, var, N)
-  points = np.empty( (N, 2) )
-  points[:,0] = radius*np.cos(thetas) + xnoise + center[0]
-  points[:,1] = radius*np.sin(thetas) + ynoise + center[1]
-  return points  
 
 if __name__ == "__main__":
 
@@ -24,12 +14,12 @@ if __name__ == "__main__":
   batch_size = 45
   
   N = 1000
-  centers = [[1, 1], [-1, -1]]
+  centers = [[1, 2], [-1, -3]]
   n_clusters = len(centers)
   X, labels_true = make_blobs(n_samples=N, centers=centers, cluster_std=0.7)
 
   #gen ring samples
-  ring = noisy_ring(N, (0,0), 10.0)
+  ring = sample.noisy_ring(N, (0,0), 10.0)
   ringTrue = [2]*N
   X = np.concatenate( (X, ring) ) 
   labels_true = np.concatenate( (labels_true,ringTrue) )
@@ -47,13 +37,14 @@ if __name__ == "__main__":
 
   ##############################################################################
   # Compute clustering with MiniBatchKMeans
-  mbk = MiniBatchKMeans(init='k-means++', k=3 )
+  print n_clusters
+  nc = nic.NIC(n_clusters)
   t0 = time.time()
-  mbk.fit(X)
+  nc.fit(X)
   t_mini_batch = time.time() - t0
-  mbk_means_labels = mbk.labels_
-  mbk_means_cluster_centers = mbk.cluster_centers_
-  mbk_means_labels_unique = np.unique(mbk_means_labels)
+  nc_means_labels = nc.labels_
+  nc_means_cluster_centers = nc.cluster_centers_
+  nc_means_labels_unique = np.unique(nc_means_labels)
 
   ##############################################################################
   # Plot result
@@ -65,7 +56,7 @@ if __name__ == "__main__":
   # MiniBatchKMeans and the KMeans algorithm. Let's pair the cluster centers per
   # closest one.
   distance = euclidean_distances(k_means_cluster_centers,
-                                mbk_means_cluster_centers,
+                                nc_means_cluster_centers,
                                 squared=True)
   order = distance.argmin(axis=1)
 
@@ -84,27 +75,27 @@ if __name__ == "__main__":
   pl.text(-3.5, 1.8,  'train time: %.2fs\ninertia: %f' % (
       t_batch, k_means.inertia_))
 
-  # MiniBatchKMeans
+  # NIC
   ax = fig.add_subplot(1, 3, 2)
   for k, col in zip(range(n_clusters), colors):
-      my_members = mbk_means_labels == order[k]
-      cluster_center = mbk_means_cluster_centers[order[k]]
+      my_members = nc_means_labels == order[k]
+      cluster_center = nc_means_cluster_centers[order[k]]
       ax.plot(X[my_members, 0], X[my_members, 1], 'w',
               markerfacecolor=col, marker='.')
       ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
                                       markeredgecolor='k', markersize=6)
-  ax.set_title('MiniBatchKMeans')
+  ax.set_title('NIC')
   ax.set_xticks(())
   ax.set_yticks(())
-  pl.text(-3.5, 1.8, 'train time: %.2fs\ninertia: %f' %
-          (t_mini_batch, mbk.inertia_))
+  #pl.text(-3.5, 1.8, 'train time: %.2fs\ninertia: %f' %
+  #        (t_mini_batch, nc.inertia_))
 
   # Initialise the different array to all False
-  different = (mbk_means_labels == 4)
+  different = (nc_means_labels == 4)
   ax = fig.add_subplot(1, 3, 3)
 
   for l in range(n_clusters):
-      different += ((k_means_labels == k) != (mbk_means_labels == order[k]))
+      different += ((k_means_labels == k) != (nc_means_labels == order[k]))
 
   identic = np.logical_not(different)
   ax.plot(X[identic, 0], X[identic, 1], 'w',

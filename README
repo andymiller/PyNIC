@@ -8,4 +8,9 @@ Run "python nic.py" for a clustering example, and run
 
 more at learningpapers.tumblr.com
 
-
+update:
+I factored out some computation in the score learning - instead of recomputing 
+all distances between points in all clusters, I just recompute the distances that
+include the point in question and subtract/add to clusters.  This idea can be taken even 
+farther for more than 2 clusters.  K means comparison is super cool - this process is a 
+little slower than k means, but it allows for much more interesting distributions.  
